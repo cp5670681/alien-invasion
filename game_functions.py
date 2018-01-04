@@ -52,6 +52,7 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
         sb.prep_score()
         sb.prep_high_score()
         sb.prep_level()
+        sb.prep_ships()
         # 清空外星人列表和子弹列表
         aliens.empty()
         bullets.empty()
@@ -93,7 +94,7 @@ def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
                                   aliens, bullets):
     """响应子弹和外星人的碰撞"""
     # 删除发生碰撞的子弹和外星人
-    collisions = pygame.sprite.groupcollide(bullets, aliens, False, True)
+    collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
     if collisions:
         for aliens in collisions.values():
             stats.score += ai_settings.alien_points * len(aliens)
@@ -167,7 +168,7 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
+def update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets):
     """
     检查是否有外星人位于屏幕边缘，并更新整群外星人的位置
     """
@@ -175,15 +176,17 @@ def update_aliens(ai_settings, stats, screen, ship, aliens, bullets):
     aliens.update()
     # 检测外星人和飞船之间的碰撞
     if pygame.sprite.spritecollideany(ship, aliens):
-        ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+        ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets)
     # 检查是否有外星人到达屏幕底端
-    check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets)
+    check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets)
 
-def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
+def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets):
     """响应被外星人撞到的飞船"""
     if stats.ships_left > 0:
         # 将ships_left减1
         stats.ships_left -= 1
+        # 更新记分牌
+        sb.prep_ships()
         # 清空外星人列表和子弹列表
         aliens.empty()
         bullets.empty()
@@ -196,13 +199,13 @@ def ship_hit(ai_settings, stats, screen, ship, aliens, bullets):
         stats.game_active = False
         pygame.mouse.set_visible(True)
 
-def check_aliens_bottom(ai_settings, stats, screen, ship, aliens, bullets):
+def check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets):
     """检查是否有外星人到达了屏幕底端"""
     screen_rect = screen.get_rect()
     for alien in aliens.sprites():
         if alien.rect.bottom >= screen_rect.bottom:
             # 像飞船被撞到一样进行处理
-            ship_hit(ai_settings, stats, screen, ship, aliens, bullets)
+            ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets)
             break
 
 def check_high_score(stats, sb):
