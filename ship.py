@@ -16,9 +16,13 @@ class Ship(Sprite):
         self.rect.bottom = self.screen_rect.bottom
         # 在飞船的属性center中存储小数值
         self.center = float(self.rect.centerx)
-        #移动标志
+        # 移动标志
         self.moving_right = False
         self.moving_left = False
+        # 开火间隔设置
+        self.fire_status = False
+        self.fire_interval = 50
+        self.fire_now_number = 0
         
     def update(self):
         """根据移动标志调整飞船的位置"""

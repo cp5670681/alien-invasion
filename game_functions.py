@@ -10,7 +10,7 @@ def check_keydown_events(event, ai_settings, screen, ship, bullets):
     elif event.key == pygame.K_LEFT:
         ship.moving_left = True
     elif event.key == pygame.K_SPACE:
-        fire_bullet(ai_settings, screen, ship, bullets)
+        ship.fire_status = True
     elif event.key == pygame.K_q:
         sys.exit()
 
@@ -20,6 +20,8 @@ def check_keyup_events(event, ship):
         ship.moving_right = False
     elif event.key == pygame.K_LEFT:
         ship.moving_left = False
+    elif event.key == pygame.K_SPACE:
+        ship.fire_status = False
 
 def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens,
                  bullets):
@@ -80,6 +82,13 @@ def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets,
 
 def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets):
     """更新子弹的位置，并删除已消失的子弹"""
+    # 产生新子弹，设置子弹发射间隔
+    if ship.fire_status:
+        ship.fire_now_number = (ship.fire_now_number + 1) % ship.fire_interval
+        if ship.fire_now_number == 1:
+            fire_bullet(ai_settings, screen, ship, bullets)
+    else:
+        ship.fire_now_number = 0
     # 更新子弹的位置
     bullets.update()
     # 删除已消失的子弹
