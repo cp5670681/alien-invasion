@@ -8,7 +8,7 @@ class Ship(Sprite):
         self.screen = screen
         self.ai_settings = ai_settings
         # 加载飞船图像并获取其外接矩形 
-        self.image = pygame.image.load('images/ship.bmp') 
+        self.image = pygame.image.load('images/ship.bmp')
         self.rect = self.image.get_rect() 
         self.screen_rect = screen.get_rect()
         # 将每艘新飞船放在屏幕底部中央 
@@ -21,8 +21,7 @@ class Ship(Sprite):
         self.moving_left = False
         # 开火间隔设置
         self.fire_status = False
-        self.fire_interval = 50
-        self.fire_now_number = 0
+
         
     def update(self):
         """根据移动标志调整飞船的位置"""

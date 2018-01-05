@@ -80,15 +80,15 @@ def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets,
     # 让最近绘制的屏幕可见
     pygame.display.flip()
 
-def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets):
+def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, bullet_type):
     """更新子弹的位置，并删除已消失的子弹"""
     # 产生新子弹，设置子弹发射间隔
     if ship.fire_status:
-        ship.fire_now_number = (ship.fire_now_number + 1) % ship.fire_interval
-        if ship.fire_now_number == 1:
-            fire_bullet(ai_settings, screen, ship, bullets)
+        ai_settings.fire_now_number = (ai_settings.fire_now_number + 1) % ai_settings.fire_interval
+        if ai_settings.fire_now_number == 1:
+            fire_bullet(ai_settings, screen, ship, bullets, bullet_type)
     else:
-        ship.fire_now_number = 0
+        ai_settings.fire_now_number = 0
     # 更新子弹的位置
     bullets.update()
     # 删除已消失的子弹
@@ -118,12 +118,17 @@ def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
         sb.prep_level()
         create_fleet(ai_settings, screen, ship, aliens)
 
-def fire_bullet(ai_settings, screen, ship, bullets):
+def fire_bullet(ai_settings, screen, ship, bullets, bullet_type):
     """如果还没有到达限制，就发射一颗子弹"""
     # 创建一颗子弹，并将其加入到编组bullets中
     if len(bullets) < ai_settings.bullets_allowed:
         new_bullet = Bullet(ai_settings, screen, ship)
         bullets.add(new_bullet)
+        if bullet_type.type == 1:
+            left_bullet = Bullet(ai_settings, screen, ship, -30)
+            bullets.add(left_bullet)
+            right_bullet = Bullet(ai_settings, screen, ship, 30)
+            bullets.add(right_bullet)
 
 def create_fleet(ai_settings, screen, ship, aliens):
     """创建外星人群"""
