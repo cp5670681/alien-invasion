@@ -22,3 +22,7 @@ class BulletType:
     def scatter_bullet(self):
         # 散弹枪
         self.type = 1
+
+    def initialize(self):
+        self.ai_settings.initialize_dynamic_settings2()
+        self.type = 0

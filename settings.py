@@ -9,7 +9,6 @@
         #飞船的设置
         self.ship_limit = 3
         # 子弹设置
-
         self.bullet_color = (60,60,60)
 
         # 外星人设置
@@ -21,22 +20,28 @@
         self.speedup_scale = 1.1
         # 外星人点数的提高速度
         self.score_scale = 1.5
+        # 食物设置
+        self.food_speed_x = 0.5
+        self.food_speed_y = 0.1
 
         self.fire_now_number = 0
         self.initialize_dynamic_settings()
+        self.initialize_dynamic_settings2()
 
     def initialize_dynamic_settings(self):
         """初始化随游戏进行而变化的设置"""
         self.ship_speed_factor = 1.5
+        self.alien_speed_factor = 0.2
+        self.fleet_direction = 1
+        self.alien_points = 50
+
+    def initialize_dynamic_settings2(self):
+        #初始化子弹的设置
         self.bullet_speed_factor = 2
         self.bullet_width = 3
         self.bullet_height = 15
         self.bullets_allowed = 3
-        self.alien_speed_factor = 0.2
-        self.fleet_direction = 1
-        self.alien_points = 50
         self.fire_interval = 50
-
 
     def increase_speed(self):
         """提高速度设置和外星人点数"""

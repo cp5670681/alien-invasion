@@ -30,6 +30,8 @@ def run_game():
     bullets = Group()
     # 外星人编组
     aliens = Group()
+    # 食物编组
+    foods = Group()
     # 设置背景色
     bg_color = (230, 230, 230)
     # 创建一群外星人
@@ -38,12 +40,13 @@ def run_game():
     while True:
     # 监视键盘和鼠标事件 
         gf.check_events(ai_settings, screen, stats, sb, play_button, ship,
-                        aliens, bullets)
+                        aliens, bullets, bullet_type)
         if stats.game_active:
             ship.update()
-            gf.update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, bullet_type)
+            gf.update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, foods, bullet_type)
             gf.update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets)
+            gf.update_foods(ai_settings, ship, foods, bullet_type)
         gf.update_screen(ai_settings, screen, stats, sb, ship, aliens,
-                         bullets, play_button)
-        bullet_type.scatter_bullet()
+                         bullets, foods, play_button)
+        #bullet_type.continuous_bullet()
 run_game()
