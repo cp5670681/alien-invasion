@@ -205,6 +205,9 @@ def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets):
         # 暂停
         sleep(0.5)
     else:
+        # 高分存文件
+        with open("high_score",'w') as f:
+            f.write(str(stats.high_score))
         stats.game_active = False
         pygame.mouse.set_visible(True)
 
