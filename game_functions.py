@@ -26,7 +26,7 @@ def check_keyup_events(event, ship):
         ship.fire_status = False
 
 def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, foods, bosss,
-                 bullets, bullet_type):
+                 bullets, boss_bullets, bullet_type):
     """响应按键和鼠标事件"""
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -38,10 +38,10 @@ def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, food
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             check_play_button(ai_settings, screen, stats, sb, play_button,
-                              ship, aliens, foods, bosss, bullets, mouse_x, mouse_y, bullet_type)
+                              ship, aliens, foods, bosss, bullets, boss_bullets, mouse_x, mouse_y, bullet_type)
 
 def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
-                      aliens, foods, bosss, bullets, mouse_x, mouse_y, bullet_type):
+                      aliens, foods, bosss, bullets, boss_bullets, mouse_x, mouse_y, bullet_type):
     """在玩家单击Play按钮时开始新游戏"""
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
@@ -64,6 +64,7 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
         bullets.empty()
         foods.empty()
         bosss.empty()
+        boss_bullets.empty()
         # 创建一群新的外星人，并让飞船居中
         create_fleet(ai_settings, screen, ship, aliens)
         ship.center_ship()
