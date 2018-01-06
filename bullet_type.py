@@ -5,7 +5,7 @@ class BulletType:
 
     def thick_bullet(self):
         # 粗子弹
-        self.ai_settings.bullet_width = 20
+        self.ai_settings.bullet_width = 100
 
 
     def laser_bullet(self):
@@ -22,6 +22,7 @@ class BulletType:
     def scatter_bullet(self):
         # 散弹枪
         self.type = 1
+        self.ai_settings.bullets_allowed = 9
 
     def initialize(self):
         self.ai_settings.initialize_dynamic_settings2()

@@ -9,7 +9,7 @@ class Alien(Sprite):
         self.screen = screen
         self.ai_settings = ai_settings
         # 加载外星人图像，并设置其rect属性
-        self.image = pygame.image.load('images/alien.bmp')
+        self.image = pygame.image.load('images/alien.gif')
         self.rect = self.image.get_rect()
         #每个外星人最初都在屏幕左上角附近
         self.rect.x = self.rect.width
@@ -34,3 +34,26 @@ class Alien(Sprite):
         self.x += (self.ai_settings.alien_speed_factor *
                     self.ai_settings.fleet_direction)
         self.rect.x = self.x
+
+
+class Boss(Sprite):
+    """表示单个boss的类"""
+
+    def __init__(self, ai_settings, screen, blood = 10):
+        """初始化boss并设置其起始位置"""
+        super().__init__()
+        self.screen = screen
+        self.ai_settings = ai_settings
+        # 加载boss图像，并设置其rect属性
+        self.image = pygame.image.load('images/boss.gif')
+        self.rect = self.image.get_rect()
+        self.screen_rect = screen.get_rect()
+        # 每个boss最初都在屏幕上方附近
+        self.rect.centerx = self.screen_rect.centerx
+        self.rect.top = 50
+        # 血量
+        self.blood = blood
+
+    def blitme(self):
+        """在指定位置绘制外星人"""
+        self.screen.blit(self.image, self.rect)

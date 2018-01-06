@@ -7,7 +7,6 @@ from button import Button
 from ship import Ship
 import bullet
 from bullet_type import BulletType
-#from alien import Alien
 import game_functions as gf
 
 def run_game():
@@ -28,8 +27,10 @@ def run_game():
     bullet_type = BulletType(ai_settings)
     # 创建一个用于存储子弹的编组
     bullets = Group()
+    boss_bullets = Group()
     # 外星人编组
     aliens = Group()
+    bosss = Group()
     # 食物编组
     foods = Group()
     # 设置背景色
@@ -40,13 +41,15 @@ def run_game():
     while True:
     # 监视键盘和鼠标事件 
         gf.check_events(ai_settings, screen, stats, sb, play_button, ship,
-                        aliens, bullets, bullet_type)
+                        aliens, foods, bosss, bullets, bullet_type)
         if stats.game_active:
             ship.update()
-            gf.update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, foods, bullet_type)
-            gf.update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets)
+            gf.update_bullets(ai_settings, screen, stats, sb, ship, aliens, bosss,
+                              bullets, boss_bullets, foods, bullet_type)
+            gf.update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets)
             gf.update_foods(ai_settings, ship, foods, bullet_type)
-        gf.update_screen(ai_settings, screen, stats, sb, ship, aliens,
-                         bullets, foods, play_button)
+            gf.update_bosss()
+        gf.update_screen(ai_settings, screen, stats, sb, ship, aliens, bosss,
+                         bullets, boss_bullets, foods, play_button)
         #bullet_type.continuous_bullet()
 run_game()

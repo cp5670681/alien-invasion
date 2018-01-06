@@ -2,8 +2,8 @@ import sys
 import random
 from time import sleep
 import pygame
-from bullet import Bullet
-from alien import Alien
+from bullet import Bullet, BossBullet
+from alien import Alien, Boss
 from food import Food
 def check_keydown_events(event, ai_settings, screen, ship, bullets):
     """响应按键"""
@@ -25,7 +25,7 @@ def check_keyup_events(event, ship):
     elif event.key == pygame.K_SPACE:
         ship.fire_status = False
 
-def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens,
+def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens, foods, bosss,
                  bullets, bullet_type):
     """响应按键和鼠标事件"""
     for event in pygame.event.get():
@@ -38,10 +38,10 @@ def check_events(ai_settings, screen, stats, sb, play_button, ship, aliens,
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = pygame.mouse.get_pos()
             check_play_button(ai_settings, screen, stats, sb, play_button,
-                              ship, aliens, bullets, mouse_x, mouse_y, bullet_type)
+                              ship, aliens, foods, bosss, bullets, mouse_x, mouse_y, bullet_type)
 
 def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
-                      aliens, bullets, mouse_x, mouse_y, bullet_type):
+                      aliens, foods, bosss, bullets, mouse_x, mouse_y, bullet_type):
     """在玩家单击Play按钮时开始新游戏"""
     button_clicked = play_button.rect.collidepoint(mouse_x, mouse_y)
     if button_clicked and not stats.game_active:
@@ -62,21 +62,26 @@ def check_play_button(ai_settings, screen, stats, sb, play_button, ship,
         # 清空外星人列表和子弹列表
         aliens.empty()
         bullets.empty()
+        foods.empty()
+        bosss.empty()
         # 创建一群新的外星人，并让飞船居中
         create_fleet(ai_settings, screen, ship, aliens)
         ship.center_ship()
 
-def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets,
-                  foods, play_button):
+def update_screen(ai_settings, screen, stats, sb, ship, aliens, bosss, bullets,
+                  boss_bullets, foods, play_button):
     """更新屏幕上的图像，并切换到新屏幕"""
     # 每次循环时都重绘屏幕
     screen.fill(ai_settings.bg_color)
     # 在飞船和外星人后面重绘所有子弹
     for bullet in bullets.sprites():
         bullet.draw_bullet()
+    for boss_bullet in boss_bullets.sprites():
+        boss_bullet.draw_bullet()
     ship.blitme()
     aliens.draw(screen)
     foods.draw(screen)
+    bosss.draw(screen)
     # 显示得分
     sb.show_score()
     # 如果游戏处于非活动状态，就绘制Play按钮
@@ -85,7 +90,7 @@ def update_screen(ai_settings, screen, stats, sb, ship, aliens, bullets,
     # 让最近绘制的屏幕可见
     pygame.display.flip()
 
-def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, foods, bullet_type):
+def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bosss, bullets, boss_bullets, foods, bullet_type):
     """更新子弹的位置，并删除已消失的子弹"""
     # 产生新子弹，设置子弹发射间隔
     if ship.fire_status:
@@ -94,35 +99,68 @@ def update_bullets(ai_settings, screen, stats, sb, ship, aliens, bullets, foods,
             fire_bullet(ai_settings, screen, ship, bullets, bullet_type)
     else:
         ai_settings.fire_now_number = 0
+    # boss子弹
+    for boss in bosss:
+        if boss.blood % 10 == 0:
+            for i in range(8):
+                boss_fire(ai_settings, screen, boss, boss_bullets, -50 + 13 * i + 0.5 * (boss.blood % 20))
+            boss.blood = boss.blood - 1
+    # 中了boss子弹
+    if pygame.sprite.spritecollideany(ship, boss_bullets):
+        ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets)
+
     # 更新子弹的位置
     bullets.update()
+    boss_bullets.update()
     # 删除已消失的子弹
     for bullet in bullets.copy():
         if bullet.rect.bottom <= 0:
             bullets.remove(bullet)
+    for boss_bullet in boss_bullets.copy():
+        if boss_bullet.rect.top >= ai_settings.screen_height:
+            boss_bullets.remove(boss_bullet)
 
     check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
-                                  aliens, bullets, foods)
+                                  aliens, bosss, bullets, foods)
+
+def boss_fire(ai_settings, screen, boss, boss_bullets, angle):
+    new_boss_bullet = BossBullet(ai_settings, screen, boss, angle)
+    boss_bullets.add(new_boss_bullet)
+
 
 def check_bullet_alien_collisions(ai_settings, screen, stats, sb, ship,
-                                  aliens, bullets, foods):
+                                  aliens, bosss, bullets, foods):
     """响应子弹和外星人的碰撞"""
     # 删除发生碰撞的子弹和外星人
     collisions = pygame.sprite.groupcollide(bullets, aliens, True, True)
+    #子弹和boss碰撞
+    collisions_boss = pygame.sprite.groupcollide(bullets, bosss, True, False)
     if collisions:
         for aliens in collisions.values():
             stats.score += ai_settings.alien_points * len(aliens)
             sb.prep_score()
         check_high_score(stats, sb)
-    if len(aliens) == 0:
+    # boss处理
+    if collisions_boss:
+        for boss_list in collisions_boss.values():
+            for boss in boss_list:
+                boss.blood = boss.blood - 1
+                if boss.blood == 0:
+                    stats.score += stats.level * 100
+                    sb. prep_score()
+                    check_high_score(stats, sb)
+                    bosss.remove(boss)
+    if len(aliens) == 0 and len(bosss) == 0:
         # 删除现有的子弹并新建一群外星人，提高等级
         bullets.empty()
         ai_settings.increase_speed()
         # 提高等级
         stats.level += 1
+        appear_bosss(ai_settings, screen, bosss, blood = 10 * stats.level)
         appear_food(ai_settings, screen, foods)
         sb.prep_level()
         create_fleet(ai_settings, screen, ship, aliens)
+
 
 def fire_bullet(ai_settings, screen, ship, bullets, bullet_type):
     """如果还没有到达限制，就发射一颗子弹"""
@@ -188,7 +226,7 @@ def change_fleet_direction(ai_settings, aliens):
     ai_settings.fleet_direction *= -1
 
 
-def update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets):
+def update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets):
     """
     检查是否有外星人位于屏幕边缘，并更新整群外星人的位置
     """
@@ -196,11 +234,11 @@ def update_aliens(ai_settings, stats, screen, sb, ship, aliens, bullets):
     aliens.update()
     # 检测外星人和飞船之间的碰撞
     if pygame.sprite.spritecollideany(ship, aliens):
-        ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets)
+        ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets)
     # 检查是否有外星人到达屏幕底端
-    check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets)
+    check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets)
 
-def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets):
+def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets):
     """响应被外星人撞到的飞船"""
     if stats.ships_left > 0:
         # 将ships_left减1
@@ -210,6 +248,7 @@ def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets):
         # 清空外星人列表和子弹列表
         aliens.empty()
         bullets.empty()
+        boss_bullets.empty()
         # 创建一群新的外星人，并将飞船放到屏幕底端中央
         create_fleet(ai_settings, screen, ship, aliens)
         ship.center_ship()
@@ -222,13 +261,13 @@ def ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets):
         stats.game_active = False
         pygame.mouse.set_visible(True)
 
-def check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets):
+def check_aliens_bottom(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets):
     """检查是否有外星人到达了屏幕底端"""
     screen_rect = screen.get_rect()
     for alien in aliens.sprites():
         if alien.rect.bottom >= screen_rect.bottom:
             # 像飞船被撞到一样进行处理
-            ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets)
+            ship_hit(ai_settings, stats, screen, sb, ship, aliens, bullets, boss_bullets)
             break
 
 def check_high_score(stats, sb):
@@ -266,3 +305,11 @@ def eat_food(food_str, bullet_type): #吃到食物
         bullet_type.continuous_bullet()
     elif food_str == 'S':
         bullet_type.scatter_bullet()
+
+def update_bosss():
+    pass
+
+def appear_bosss(ai_settings, screen, bosss, blood):
+    # 产生boss
+    new_boss = Boss(ai_settings, screen, blood)
+    bosss.add(new_boss)
